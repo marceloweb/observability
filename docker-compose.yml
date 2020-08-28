@@ -56,3 +56,16 @@ services:
             JAEGER_AGENT_PORT: 6831
         depends_on:
             - jaeger-agent
+
+    demo:
+        image: openjdk:15-jdk-alpine
+        ports:
+            - "8082:8080"
+        volumes:
+            - "./applications/demo/target:/httpd:rw"
+        environment: 
+            JAEGER_HOST: jaeger-agent
+            JAEGER_PORT: 6831
+        entrypoint: ["java","-Djava.security.egd=file:/dev/./urandom","-jar","httpd/demo-0.0.2-SNAPSHOT.jar"]
+        depends_on: 
+            - jaeger-agent
