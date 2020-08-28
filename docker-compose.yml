@@ -1,45 +1,58 @@
 version: "3"
 services: 
-    jaeger:
-        image: jaegertracing/all-in-one:1.9
-        ports: 
-            - 16686:16686
-            - 6831:6831/udp
-        restart: always
-    db:
-        image: mariadb
-        privileged: true
-        restart: always
-        ports: 
-            - 3306:3306
-        environment: 
-            MYSQL_ROOT_PASSWORD: root
-    zookeeper:
-        image: confluentinc/cp-zookeeper:5.5.1
-        hostname: zookeeper
-        container_name: zookeeper
+    jaeger-collector:
+        image: jaegertracing/jaeger-collector
+        command: ["--cassandra.keyspace=jaeger_v1_dc1", "--cassandra.servers=cassandra", "--collector.zipkin.http-port=9411"]
         ports:
-            - "2181:2181"
-        environment:
-            ZOOKEEPER_CLIENT_PORT: 2181
-            ZOOKEEPER_TICK_TIME: 2000
-    broker:
-        image: confluentinc/cp-kafka:5.5.1
-        hostname: broker
-        container_name: broker
+          - "14269"
+          - "14268:14268"
+          - "14250"
+          - "9411:9411"
+        restart: on-failure
         depends_on:
-            - zookeeper
+          - cassandra-schema
+        environment: 
+            CASSANDRA_SERVERS: cassandra
+  
+    jaeger-query:
+        image: jaegertracing/jaeger-query
+        command: ["--cassandra.keyspace=jaeger_v1_dc1", "--cassandra.servers=cassandra"]
         ports:
-            - "29092:29092"
-            - "9092:9092"
-            - "9101:9101"
+            - "16686:16686"
+            - "16687"
+        restart: on-failure
+        depends_on:
+            - cassandra-schema
+        environment: 
+            CASSANDRA_SERVERS: cassandra
+
+    jaeger-agent:
+        image: jaegertracing/jaeger-agent
+        command: ["--reporter.grpc.host-port=jaeger-collector:14250"]
+        ports:
+            - "5775:5775/udp"
+            - "6831:6831/udp"
+            - "6832:6832/udp"
+            - "5778:5778"
+        restart: on-failure
+        depends_on:
+            - jaeger-collector
+
+    cassandra:
+        image: cassandra:3.9
+
+    cassandra-schema:
+        image: jaegertracing/jaeger-cassandra-schema
+        depends_on:
+            - cassandra
+
+    hotrod:
+        image: jaegertracing/example-hotrod:latest
+        ports: 
+            - "8081:8080"
+        command: ["all"]
         environment:
-            KAFKA_BROKER_ID: 1
-            KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
-            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-            KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-            KAFKA_JMX_PORT: 9101
+            JAEGER_AGENT_HOST: jaeger-agent
+            JAEGER_AGENT_PORT: 6831
+        depends_on:
+            - jaeger-agent
