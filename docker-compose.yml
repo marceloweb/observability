@@ -46,17 +46,6 @@ services:
         depends_on:
             - cassandra
 
-    hotrod:
-        image: jaegertracing/example-hotrod:latest
-        ports: 
-            - "8081:8080"
-        command: ["all"]
-        environment:
-            JAEGER_AGENT_HOST: jaeger-agent
-            JAEGER_AGENT_PORT: 6831
-        depends_on:
-            - jaeger-agent
-
     demo:
         image: openjdk:11
         ports:
@@ -75,6 +64,14 @@ services:
         volumes: 
             - "./tmp/prometheus.yml:/etc/prometheus/prometheus.yml"
         restart: always
+
+    metricbeat:
+        image: docker.elastic.co/beats/metricbeat:7.9.1
+        ports: 
+            - "9201:9201"
+        restart: always
+        environment: 
+            - output.elasticsearch.hosts=["elasticsearch:9200"]
 
     grafana:
         image: grafana/grafana:latest
