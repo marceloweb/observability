@@ -65,14 +65,6 @@ services:
             - "./tmp/prometheus.yml:/etc/prometheus/prometheus.yml"
         restart: always
 
-    metricbeat:
-        image: docker.elastic.co/beats/metricbeat:7.9.1
-        ports: 
-            - "9201:9201"
-        restart: always
-        environment: 
-            - output.elasticsearch.hosts=["elasticsearch:9200"]
-
     grafana:
         image: grafana/grafana:latest
         ports: 

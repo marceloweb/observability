@@ -3,8 +3,6 @@ global:
   evaluation_interval: 20s 
   external_labels:
     monitor: 'codelab-monitor'
-remote_write:
-  - url: "http://172.19.0.1:9201/write"    
 scrape_configs:
   - job_name: 'prometheus'
     scrape_interval: 5s
