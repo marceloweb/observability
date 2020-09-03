@@ -58,7 +58,7 @@ services:
             - jaeger-agent
 
     demo:
-        image: openjdk:15-jdk-alpine
+        image: openjdk:11
         ports:
             - "8082:8080"
         volumes:
@@ -67,8 +67,6 @@ services:
             JAEGER_HOST: jaeger-agent
             JAEGER_PORT: 6831
         entrypoint: ["java","-Djava.security.egd=file:/dev/./urandom","-jar","httpd/demo-0.0.1-SNAPSHOT.jar"]
-        depends_on: 
-            - jaeger-agent
     
     prometheus:
         image: prom/prometheus
@@ -76,6 +74,7 @@ services:
             - "9090:9090"
         volumes: 
             - "./tmp/prometheus.yml:/etc/prometheus/prometheus.yml"
+        restart: always
 
     grafana:
         image: grafana/grafana:latest
