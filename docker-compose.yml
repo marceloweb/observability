@@ -69,3 +69,15 @@ services:
         entrypoint: ["java","-Djava.security.egd=file:/dev/./urandom","-jar","httpd/demo-0.0.1-SNAPSHOT.jar"]
         depends_on: 
             - jaeger-agent
+    
+    prometheus:
+        image: prom/prometheus
+        ports: 
+            - "9090:9090"
+        volumes: 
+            - "./tmp/prometheus.yml:/etc/prometheus/prometheus.yml"
+
+    grafana:
+        image: grafana/grafana:latest
+        ports: 
+            - "3000:3000"
