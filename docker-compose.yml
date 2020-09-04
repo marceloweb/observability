@@ -76,5 +76,26 @@ services:
             - "9200:9200"
             - "9300:9300"
         restart: always
+        volumes:
+            - "./tmp/elasticsearch.yml:/usr/share/elasticsearch/config/metricbeat.yml"
         environment:
             - discovery.type=single-node
+
+    kibana:
+        image: docker.elastic.co/kibana/kibana:7.8.0
+        container_name: kibana
+        environment:
+            SERVER_NAME: localhost
+            ELASTICSEARCH_URL: http://http://172.19.0.1:9200/
+        ports:
+            - 5601:5601
+        depends_on: 
+            - elasticsearch
+
+    metricbeat:
+        image: docker.elastic.co/beats/metricbeat:6.3.2
+        environment:
+            - setup.kibana.host=kibana:5601
+            - output.elasticsearch.hosts=["elasticsearch:9200"]
+        depends_on: 
+            - elasticsearch
