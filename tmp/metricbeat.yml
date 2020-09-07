@@ -1,5 +1,0 @@
-metricbeat.modules:
-    - module: prometheus
-      period: 10s
-      hosts: ["172.19.0.1:9090"]
-      metrics_path: /metrics
