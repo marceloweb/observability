@@ -65,6 +65,21 @@ services:
             - "./tmp/prometheus.yml:/etc/prometheus/prometheus.yml"
         restart: always
 
+    prometheus-kafka-adapter:
+        image: telefonica/prometheus-kafka-adapter:1.7.0
+        ports:
+            - "8083:8083"
+        restart: always
+        depends_on: 
+            - prometheus
+        network_mode: host
+        environment: 
+            PORT: 8083
+            KAFKA_BROKER_LIST: localhost:9092
+            KAFKA_TOPIC: metrics
+            SERIALIZATION_FORMAT: json
+            LOG_LEVEL: info
+
     grafana:
         image: grafana/grafana:latest
         ports: 
